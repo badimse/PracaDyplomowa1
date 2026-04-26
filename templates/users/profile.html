@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil - Serwis RTV{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-person-circle"></i> Mój profil
+            </div>
+            <div class="card-body">
+                {% if profile %}
+                    {% if user.role == 'client' %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Imię</label>
+                                <p class="mb-0"><strong>{{ profile.first_name|default:"-" }}</strong></p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Nazwisko</label>
+                                <p class="mb-0"><strong>{{ profile.last_name|default:"-" }}</strong></p>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small">Email</label>
+                            <p class="mb-0"><strong>{{ profile.email }}</strong></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small">Telefon</label>
+                            <p class="mb-0"><strong>{{ profile.phone|default:"-" }}</strong></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small">Adres</label>
+                            <p class="mb-0">{{ profile.address|default:"-" }}</p>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="text-muted small">Kod pocztowy</label>
+                                <p class="mb-0"><strong>{{ profile.postal_code|default:"-" }}</strong></p>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="text-muted small">Miejscowość</label>
+                                <p class="mb-0"><strong>{{ profile.city|default:"-" }}</strong></p>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="text-muted small">Województwo</label>
+                                <p class="mb-0"><strong>{{ profile.voivodeship|default:"-" }}</strong></p>
+                            </div>
+                        </div>
+                    {% elif user.role == 'service' %}
+                        <div class="mb-3">
+                            <label class="text-muted small">Nazwa firmy</label>
+                            <p class="mb-0"><strong>{{ profile.company_name|default:"-" }}</strong></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small">NIP</label>
+                            <p class="mb-0"><strong>{{ profile.nip|default:"-" }}</strong></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small">Email</label>
+                            <p class="mb-0"><strong>{{ profile.email }}</strong></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small">Telefon</label>
+                            <p class="mb-0"><strong>{{ profile.phone|default:"-" }}</strong></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small">Adres</label>
+                            <p class="mb-0">{{ profile.address|default:"-" }}</p>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="text-muted small">Kod pocztowy</label>
+                                <p class="mb-0"><strong>{{ profile.postal_code|default:"-" }}</strong></p>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="text-muted small">Miejscowość</label>
+                                <p class="mb-0"><strong>{{ profile.city|default:"-" }}</strong></p>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="text-muted small">Województwo</label>
+                                <p class="mb-0"><strong>{{ profile.voivodeship|default:"-" }}</strong></p>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small">Opis</label>
+                            <p class="mb-0">{{ profile.description|default:"-" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small">Specjalizacje</label>
+                            <p class="mb-0">{{ profile.specializes_in|default:"-" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small">Status</label>
+                            <p class="mb-0">
+                                {% if profile.is_verified %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Zweryfikowany</span>
+                                {% else %}
+                                    <span class="badge bg-warning"><i class="bi bi-clock"></i> Oczekuje na weryfikację</span>
+                                {% endif %}
+                                {% if profile.is_active %}
+                                    <span class="badge bg-success">Aktywny</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Nieaktywny</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Profil nie został jeszcze utworzony.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'profile_edit' %}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Edytuj profil
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Powrót
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        {% if user.role == 'client' and profile %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="bi bi-file-earmark-text"></i> Statystyki
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Wszystkie zgłoszenia:</span>
+                        <strong>{{ profile.service_requests.count }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>W trakcie:</span>
+                        <strong>{{ in_progress_count }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Zakończone:</span>
+                        <strong>{{ completed_count }}</strong>
+                    </div>
+                </div>
+            </div>
+        {% elif user.role == 'service' and profile %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="bi bi-star"></i> Opinie
+                </div>
+                <div class="card-body">
+                    {% if profile.reviews.count > 0 %}
+                        <div class="text-center mb-3">
+                            <h2 class="mb-0">{{ average_rating }}</h2>
+                            <div class="text-warning">
+                                {% for i in "12345"|make_list %}
+                                    <i class="bi bi-star{% if forloop.counter <= average_rating %}-fill{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">{{ profile.reviews.count }} opinii</small>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">Brak opinii</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-gear"></i> Ustawienia
+            </div>
+            <div class="card-body">
+                <a href="{% url 'profile_edit' %}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-pencil"></i> Edytuj dane
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100">
+                    <i class="bi bi-box-arrow-right"></i> Wyloguj
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

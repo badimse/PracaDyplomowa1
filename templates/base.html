@@ -1,0 +1,460 @@
+{% load notification_tags %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Serwis RTV{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+        
+        body {
+            background-color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: #fff !important;
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border-bottom: none;
+            border-radius: 12px 12px 0 0 !important;
+            font-weight: 600;
+        }
+        
+        .badge-status {
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-draft { background-color: #94a3b8; }
+        .badge-submitted { background-color: #3b82f6; }
+        .badge-viewed_by_services { background-color: #06b6d4; }
+        .badge-offers_received { background-color: #8b5cf6; }
+        .badge-in_progress { background-color: #f59e0b; }
+        .badge-completed { background-color: #22c55e; }
+        .badge-cancelled { background-color: #ef4444; }
+        
+        .sidebar {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+        }
+        
+        .sidebar .nav-link {
+            color: var(--secondary-color) !important;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: var(--primary-color);
+            color: #fff !important;
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 10px;
+        }
+        
+        footer {
+            margin-top: auto;
+            background: #1e293b;
+            color: #94a3b8;
+            padding: 2rem 0;
+        }
+        
+        .device-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="bi bi-tools"></i> Serwis RTV
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard' %}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-bell"></i>
+                                {% get_unread_count user as unread_count %}
+                                {% if unread_count > 0 %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                                        {{ unread_count }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown" style="max-width: 350px; max-height: 400px; overflow-y: auto;">
+                                <li><h6 class="dropdown-header">Powiadomienia</h6></li>
+                                {% for notification in user.notifications.all|slice:":10" %}
+                                    <li>
+                                        <a class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %} {% if notification.type == 'success' %}text-success{% elif notification.type == 'warning' %}text-warning{% elif notification.type == 'error' %}text-danger{% endif %}" 
+                                           href="{{ notification.link|default:'#' }}">
+                                            <i class="bi bi-{% if notification.type == 'success' %}check-circle{% elif notification.type == 'warning' %}exclamation-triangle{% elif notification.type == 'error' %}x-circle{% else %}info-circle{% endif %}"></i>
+                                            <small>{{ notification.title }}</small>
+                                            <br><small class="text-muted">{{ notification.created_at|timesince }} temu</small>
+                                        </a>
+                                    </li>
+                                {% empty %}
+                                    <li><a class="dropdown-item text-muted" href="#">Brak powiadomień</a></li>
+                                {% endfor %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-center" href="{% url 'notifications_list' %}">Zobacz wszystkie</a></li>
+                            </ul>
+                        </li>
+                        {% if user.role == 'client' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'request_create' %}">
+                                    <i class="bi bi-plus-circle"></i> Nowe zgłoszenie
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'request_list' %}">
+                                    <i class="bi bi-list-ul"></i> Moje zgłoszenia
+                                </a>
+                            </li>
+                        {% elif user.role == 'service' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'request_list' %}">
+                                    <i class="bi bi-search"></i> Przeglądaj zgłoszenia
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'payment_list' %}">
+                                    <i class="bi bi-credit-card"></i> Płatności
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if user.role == 'client' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'payment_list' %}">
+                                    <i class="bi bi-credit-card"></i> Płatności
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if user.role == 'admin' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'admin_panel' %}">
+                                    <i class="bi bi-gear"></i> Panel Admina
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'profile' %}">
+                                <i class="bi bi-person-circle"></i> {{ user.username }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right"></i> Wyloguj
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="bi bi-box-arrow-in-right"></i> Zaloguj
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">
+                                <i class="bi bi-person-plus"></i> Zarejestruj
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="py-4">
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer>
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2024 Serwis RTV - Platforma pośrednicząca w naprawach</p>
+            <small>Projekt pracy dyplomowej</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Auto-refresh notifications co 10 sekund -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateNotificationCount() {
+            fetch('{% url "api_notifications_count" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.querySelector('.navbar-nav .badge.bg-danger');
+                    if (data.unread_count > 0) {
+                        if (!badge) {
+                            // Dodaj badge jeśli nie istnieje
+                            const dropdown = document.getElementById('notificationsDropdown');
+                            if (dropdown) {
+                                const newBadge = document.createElement('span');
+                                newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                                newBadge.style.fontSize = '0.6rem';
+                                newBadge.textContent = data.unread_count;
+                                dropdown.appendChild(newBadge);
+                            }
+                        } else {
+                            badge.textContent = data.unread_count;
+                        }
+                    } else if (badge) {
+                        badge.remove();
+                    }
+                });
+        }
+        
+        // Aktualizuj przy ładowaniu i co 10 sekund
+        updateNotificationCount();
+        setInterval(updateNotificationCount, 10000);
+    });
+    </script>
+    
+    <!-- Chat Widget -->
+    {% if user.is_authenticated %}
+    <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <!-- Przycisk czatu -->
+        <button id="chat-widget-toggle" class="btn btn-primary rounded-circle" style="width: 60px; height: 60px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" onclick="toggleChatWidget()">
+            <i class="bi bi-chat-dots-fill" style="font-size: 1.5rem;"></i>
+        </button>
+        
+        <!-- Panel czatu -->
+        <div id="chat-widget-panel" class="card" style="display: none; width: 350px; position: absolute; bottom: 70px; right: 0; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, var(--primary-color), #1d4ed8); color: white;">
+                <span><i class="bi bi-chat-dots"></i> Wiadomości</span>
+                <button type="button" class="btn-close btn-close-white" onclick="toggleChatWidget()"></button>
+            </div>
+            <div class="card-body p-0" style="max-height: 400px;">
+                <div id="chat-widget-messages" style="height: 300px; overflow-y: auto; padding: 1rem;">
+                    <p class="text-muted text-center" id="chat-widget-placeholder">Wybierz zgłoszenie aby zobaczyć czat</p>
+                </div>
+                <div id="chat-widget-input" style="padding: 0.75rem; border-top: 1px solid #dee2e6; display: none;">
+                    <form id="chat-widget-form" method="POST">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" name="content" class="form-control form-control-sm" placeholder="Napisz..." required>
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="card-footer" style="background: #f8f9fa;">
+                <select id="chat-widget-request-select" class="form-select form-select-sm" onchange="loadChatForRequest(this.value)">
+                    <option value="">-- Wybierz zgłoszenie --</option>
+                    {% if user.role == 'client' %}
+                        {% for request in user.client_profile.service_requests.all|slice:":10" %}
+                            <option value="{{ request.pk }}">{{ request.title|truncatechars:30 }}</option>
+                        {% endfor %}
+                    {% elif user.role == 'service' %}
+                        {% for offer in user.service_profile.offers.all|slice:":10" %}
+                            <option value="{{ offer.service_request.pk }}">{{ offer.service_request.title|truncatechars:30 }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+                <a id="chat-widget-full-btn" href="#" class="btn btn-sm btn-outline-primary mt-2 w-100" style="display: none;">
+                    <i class="bi bi-arrows-fullscreen"></i> Otwórz pełny czat
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    let currentRequestId = null;
+    let chatInterval = null;
+    
+    function toggleChatWidget() {
+        const panel = document.getElementById('chat-widget-panel');
+        const placeholder = document.getElementById('chat-widget-placeholder');
+        
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            if (currentRequestId) {
+                loadChatForRequest(currentRequestId);
+            }
+        } else {
+            panel.style.display = 'none';
+            if (chatInterval) {
+                clearInterval(chatInterval);
+                chatInterval = null;
+            }
+        }
+    }
+    
+    function loadChatForRequest(requestId) {
+        if (!requestId) {
+            document.getElementById('chat-widget-messages').innerHTML = '<p class="text-muted text-center">Wybierz zgłoszenie aby zobaczyć czat</p>';
+            document.getElementById('chat-widget-input').style.display = 'none';
+            document.getElementById('chat-widget-full-btn').style.display = 'none';
+            currentRequestId = null;
+            if (chatInterval) {
+                clearInterval(chatInterval);
+                chatInterval = null;
+            }
+            return;
+        }
+        
+        currentRequestId = requestId;
+        document.getElementById('chat-widget-full-btn').href = '/zgloszenia/chat/' + requestId + '/';
+        document.getElementById('chat-widget-full-btn').style.display = 'block';
+        
+        fetchMessages(requestId);
+        
+        // Odświeżaj co 5 sekund
+        if (chatInterval) clearInterval(chatInterval);
+        chatInterval = setInterval(() => fetchMessages(requestId), 5000);
+    }
+    
+    function fetchMessages(requestId) {
+        fetch('/zgloszenia/api/messages/' + requestId + '/')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('chat-widget-messages');
+                if (data.messages && data.messages.length > 0) {
+                    let html = '';
+                    data.messages.forEach(msg => {
+                        if (msg.is_mine) {
+                            html += '<div class="d-flex justify-content-end mb-2"><div class="bg-primary text-white p-2 rounded" style="max-width: 80%;"><small>' + msg.content + '</small><br><small style="opacity: 0.8; font-size: 0.7rem;">' + msg.created_at + '</small></div></div>';
+                        } else {
+                            html += '<div class="d-flex justify-content-start mb-2"><div class="bg-light p-2 rounded" style="max-width: 80%;"><small>' + msg.content + '</small><br><small class="text-muted" style="font-size: 0.7rem;">' + msg.created_at + '</small></div></div>';
+                        }
+                    });
+                    container.innerHTML = html;
+                    container.scrollTop = container.scrollHeight;
+                    document.getElementById('chat-widget-input').style.display = 'block';
+                    document.getElementById('chat-widget-placeholder').style.display = 'none';
+                } else {
+                    container.innerHTML = '<p class="text-muted text-center">Brak wiadomości</p>';
+                }
+            });
+    }
+    
+    // Obsługa wysyłania wiadomości z widgetu
+    document.getElementById('chat-widget-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!currentRequestId) return;
+        
+        const formData = new FormData(this);
+        fetch('/zgloszenia/' + currentRequestId + '/message/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            this.reset();
+            fetchMessages(currentRequestId);
+        });
+    });
+    </script>
+    {% endif %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

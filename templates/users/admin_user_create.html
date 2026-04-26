@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Dodaj użytkownika - Serwis RTV{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-person-plus"></i> Dodaj nowego użytkownika
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Nazwa użytkownika</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_role" class="form-label">Rola</label>
+                        {{ form.role }}
+                        <div class="form-text">
+                            <small>
+                                <strong>Administrator</strong> - pełny dostęp do systemu<br>
+                                <strong>Klient</strong> - osoba zgłaszająca usterkę<br>
+                                <strong>Serwis</strong> - firma naprawiająca urządzenia
+                            </small>
+                        </div>
+                        {% if form.role.errors %}
+                            <div class="text-danger small">{{ form.role.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_password1" class="form-label">Hasło</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-danger small">{{ form.password1.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_password2" class="form-label">Potwierdź hasło</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-danger small">{{ form.password2.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Dodatkowe pola dla klienta -->
+                    <div id="client-fields" class="mt-4" style="display: none;">
+                        <h5 class="border-bottom pb-2">Dane klienta</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Imię</label>
+                                <input type="text" name="first_name" class="form-control">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nazwisko</label>
+                                <input type="text" name="last_name" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dodatkowe pola dla serwisu -->
+                    <div id="service-fields" class="mt-4" style="display: none;">
+                        <h5 class="border-bottom pb-2">Dane serwisu</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Nazwa firmy</label>
+                            <input type="text" name="company_name" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Utwórz użytkownika
+                        </button>
+                        <a href="{% url 'admin_panel' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Anuluj
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('id_role').addEventListener('change', function() {
+        document.getElementById('client-fields').style.display = 'none';
+        document.getElementById('service-fields').style.display = 'none';
+        
+        if (this.value === 'client') {
+            document.getElementById('client-fields').style.display = 'block';
+        } else if (this.value === 'service') {
+            document.getElementById('service-fields').style.display = 'block';
+        }
+    });
+</script>
+
+<style>
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 0.6rem 1rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+</style>
+{% endblock %}

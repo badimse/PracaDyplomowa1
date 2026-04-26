@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Proces płatności - {{ payment.service_request.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-credit-card"></i> Proces płatności</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-shield-check"></i>
+                    <strong>Płatność Escrow</strong> - Środki będą zabezpieczone do momentu zakończenia naprawy.
+                </div>
+                
+                <h6 class="mb-3">Szczegóły płatności</h6>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1 text-muted">Zgłoszenie</p>
+                                <p class="mb-3"><strong>{{ payment.service_request.title }}</strong></p>
+                                
+                                <p class="mb-1 text-muted">Serwis</p>
+                                <p class="mb-3">{{ payment.service_offer.service.company_name }}</p>
+                                
+                                <p class="mb-1 text-muted">Metoda płatności</p>
+                                <p class="mb-0">
+                                    {% if payment.payment_method == 'bank_transfer' %}
+                                        <i class="bi bi-bank"></i> Przelew bankowy
+                                    {% elif payment.payment_method == 'card' %}
+                                        <i class="bi bi-credit-card-2-front"></i> Karta płatnicza
+                                    {% elif payment.payment_method == 'paypal' %}
+                                        <i class="bi bi-paypal"></i> PayPal
+                                    {% elif payment.payment_method == 'cash' %}
+                                        <i class="bi bi-cash"></i> Gotówka
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1 text-muted">Kwota do zapłaty</p>
+                                <p class="mb-3 text-primary fs-3"><strong>{{ payment.amount }} zł</strong></p>
+                                
+                                <p class="mb-1 text-muted">Prowizja administratora</p>
+                                <p class="mb-3 text-danger">{{ payment.admin_fee }} zł</p>
+                                
+                                <p class="mb-1 text-muted">Kwota dla serwisu</p>
+                                <p class="mb-0 text-success fs-5"><strong>{{ payment.final_amount }} zł</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> Jak działa Escrow?</h6>
+                    <ol class="mb-0 small">
+                        <li>Klient dokonuje płatności - środki trafiają do administratora</li>
+                        <li>Serwis wykonuje naprawę</li>
+                        <li>Po zakończeniu naprawy administrator wypłaca środki serwisowi</li>
+                        <li>W przypadku problemów środki mogą zostać zwrócone klientowi</li>
+                    </ol>
+                </div>
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="action" value="pay" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle-fill"></i> Dokonaj płatności
+                        </button>
+                        <button type="submit" name="action" value="cancel" class="btn btn-outline-danger btn-lg">
+                            <i class="bi bi-x-circle-fill"></i> Anuluj
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

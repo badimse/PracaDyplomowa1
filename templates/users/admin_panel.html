@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel Administratora - Serwis RTV{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="bi bi-gear"></i> Panel Administratora</h2>
+            <a href="{% url 'admin_user_create' %}" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> Dodaj użytkownika
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-funnel"></i> Filtruj użytkowników
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">Rola</label>
+                <select name="role" class="form-select">
+                    <option value="">Wszyscy</option>
+                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Administrator</option>
+                    <option value="client" {% if role_filter == 'client' %}selected{% endif %}>Klient</option>
+                    <option value="service" {% if role_filter == 'service' %}selected{% endif %}>Serwis</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Szukaj (nazwa/email)</label>
+                <input type="text" name="search" class="form-control" placeholder="Wpisz..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Województwo</label>
+                <select name="voivodeship" class="form-select">
+                    <option value="">Wszystkie</option>
+                    <option value="dolnośląskie" {% if filter_voivodeship == 'dolnośląskie' %}selected{% endif %}>Dolnośląskie</option>
+                    <option value="kujawsko-pomorskie" {% if filter_voivodeship == 'kujawsko-pomorskie' %}selected{% endif %}>Kujawsko-pomorskie</option>
+                    <option value="lubelskie" {% if filter_voivodeship == 'lubelskie' %}selected{% endif %}>Lubelskie</option>
+                    <option value="lubuskie" {% if filter_voivodeship == 'lubuskie' %}selected{% endif %}>Lubuskie</option>
+                    <option value="łódzkie" {% if filter_voivodeship == 'łódzkie' %}selected{% endif %}>Łódzkie</option>
+                    <option value="małopolskie" {% if filter_voivodeship == 'małopolskie' %}selected{% endif %}>Małopolskie</option>
+                    <option value="mazowieckie" {% if filter_voivodeship == 'mazowieckie' %}selected{% endif %}>Mazowieckie</option>
+                    <option value="opolskie" {% if filter_voivodeship == 'opolskie' %}selected{% endif %}>Opolskie</option>
+                    <option value="podkarpackie" {% if filter_voivodeship == 'podkarpackie' %}selected{% endif %}>Podkarpackie</option>
+                    <option value="podlaskie" {% if filter_voivodeship == 'podlaskie' %}selected{% endif %}>Podlaskie</option>
+                    <option value="pomorskie" {% if filter_voivodeship == 'pomorskie' %}selected{% endif %}>Pomorskie</option>
+                    <option value="śląskie" {% if filter_voivodeship == 'śląskie' %}selected{% endif %}>Śląskie</option>
+                    <option value="świętokrzyskie" {% if filter_voivodeship == 'świętokrzyskie' %}selected{% endif %}>Świętokrzyskie</option>
+                    <option value="warmińsko-mazurskie" {% if filter_voivodeship == 'warmińsko-mazurskie' %}selected{% endif %}>Warmińsko-mazurskie</option>
+                    <option value="wielkopolskie" {% if filter_voivodeship == 'wielkopolskie' %}selected{% endif %}>Wielkopolskie</option>
+                    <option value="zachodniopomorskie" {% if filter_voivodeship == 'zachodniopomorskie' %}selected{% endif %}>Zachodniopomorskie</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Weryfikacja (serwis)</label>
+                <select name="verified" class="form-select">
+                    <option value="">Wszyscy</option>
+                    <option value="yes" {% if filter_verified == 'yes' %}selected{% endif %}>Zweryfikowany</option>
+                    <option value="no" {% if filter_verified == 'no' %}selected{% endif %}>Niezweryfikowany</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Data od</label>
+                <input type="date" name="date_from" class="form-control" value="{{ filter_date_from }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Data do</label>
+                <input type="date" name="date_to" class="form-control" value="{{ filter_date_to }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search"></i> Filtruj
+                </button>
+                <a href="{% url 'admin_panel' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Wyczyść
+                </a>
+            </div>
+            <div class="col-12">
+                {% if role_filter or search_query or filter_voivodeship or filter_verified or filter_date_from or filter_date_to %}
+                    <span class="badge bg-primary">Filtry aktywne</span>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-people"></i> Użytkownicy ({{ users_count }})
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nazwa użytkownika</th>
+                        <th>Email</th>
+                        <th>Województwo</th>
+                        <th>Rola</th>
+                        <th>Status</th>
+                        <th>Data rejestracji</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in users_data %}
+                        <tr>
+                            <td>{{ data.user.pk }}</td>
+                            <td>
+                                <strong>{{ data.user.username }}</strong>
+                                {% if data.user.is_staff %}
+                                    <span class="badge bg-primary ms-1">Staff</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ data.user.email }}</td>
+                            <td>{{ data.voivodeship }}</td>
+                            <td>
+                                {% if data.user.role == 'admin' %}
+                                    <span class="badge bg-danger"><i class="bi bi-shield"></i> Administrator</span>
+                                {% elif data.user.role == 'client' %}
+                                    <span class="badge bg-success"><i class="bi bi-person"></i> Klient</span>
+                                {% elif data.user.role == 'service' %}
+                                    <span class="badge bg-info"><i class="bi bi-building"></i> Serwis</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if data.user.role == 'service' %}
+                                    {% if data.is_verified %}
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Zweryfikowany</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Oczekuje</span>
+                                    {% endif %}
+                                {% elif data.user.role == 'admin' %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                {% else %}
+                                    <span class="badge bg-success">Aktywny</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ data.user.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'admin_user_delete' data.user.pk %}" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox"></i> Brak użytkowników
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Powrót do dashboardu
+    </a>
+</div>
+{% endblock %}

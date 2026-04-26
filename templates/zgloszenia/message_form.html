@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Wyślij wiadomość - Serwis RTV{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-chat-left-text"></i> Wyślij wiadomość
+            </div>
+            <div class="card-body p-4">
+                <!-- Informacje o zgłoszeniu -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h6 class="mb-2">{{ service_request.title }}</h6>
+                        <p class="mb-1 text-muted">{{ service_request.device_brand }} {{ service_request.device_model }}</p>
+                        <p class="mb-0">
+                            <strong>Status:</strong>
+                            <span class="badge badge-status badge-{{ service_request.status }}">
+                                {{ service_request.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_content" class="form-label">Treść wiadomości</label>
+                        {{ form.content }}
+                        <div class="form-text">Wiadomość zostanie wysłana do {% if user.role == 'client' %}serwisu{% else %}klienta{% endif %}</div>
+                        {% if form.content.errors %}
+                            <div class="text-danger small">{{ form.content.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Wyślij
+                        </button>
+                        <a href="{% url 'request_detail' service_request.pk %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Anuluj
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 0.6rem 1rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    textarea.form-control {
+        min-height: 150px;
+    }
+</style>
+{% endblock %}

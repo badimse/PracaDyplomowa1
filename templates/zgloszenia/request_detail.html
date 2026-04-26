@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ service_request.title }} - Serwis RTV{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'request_list' %}">Zgłoszenia</a></li>
+                <li class="breadcrumb-item active">{{ service_request.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Szczegóły zgłoszenia -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-file-text"></i> {{ service_request.title }}</h5>
+                <span class="badge badge-status badge-{{ service_request.status }}">
+                    {{ service_request.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="text-muted small mb-1">Urządzenie</p>
+                        <p class="mb-0"><strong>{{ service_request.device_brand }} {{ service_request.device_model }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted small mb-1">Kategoria</p>
+                        <p class="mb-0">{{ service_request.device_category|default:"-" }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="text-muted small mb-1">Priorytet</p>
+                        <p class="mb-0">
+                            {% if service_request.priority == 'low' %}
+                                <span class="badge bg-secondary">Niski</span>
+                            {% elif service_request.priority == 'normal' %}
+                                <span class="badge bg-primary">Normalny</span>
+                            {% elif service_request.priority == 'high' %}
+                                <span class="badge bg-warning text-dark">Wysoki</span>
+                            {% else %}
+                                <span class="badge bg-danger">Pilny</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted small mb-1">Gwarancja</p>
+                        <p class="mb-0">
+                            {% if service_request.warranty_status %}
+                                <span class="badge bg-success">Tak</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Nie</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <p class="text-muted small mb-1">Opis usterki</p>
+                    <p>{{ service_request.description }}</p>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="text-muted small mb-1">Lokalizacja</p>
+                        <p class="mb-0">
+                            <i class="bi bi-geo-alt"></i> {{ service_request.city }}<br>
+                            {{ service_request.postal_code }}<br>
+                            {{ service_request.voivodeship }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted small mb-1">Usługa mobilna</p>
+                        <p class="mb-0">
+                            {% if service_request.is_mobile_service %}
+                                <span class="text-success"><i class="bi bi-check-circle"></i> Tak, serwisant dojedzie</span>
+                            {% else %}
+                                <span class="text-muted"><i class="bi bi-x-circle"></i> Nie</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                {% if service_request.estimated_budget %}
+                    <div class="mb-3">
+                        <p class="text-muted small mb-1">Przewidywany budżet</p>
+                        <p class="mb-0"><strong>{{ service_request.estimated_budget }} zł</strong></p>
+                    </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="text-muted small mb-1">Data utworzenia</p>
+                        <p class="mb-0">{{ service_request.created_at|date:"d.m.Y H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted small mb-1">Data ostatniej aktualizacji</p>
+                        <p class="mb-0">{{ service_request.updated_at|date:"d.m.Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                {% if user.role == 'client' and service_request.client.user == user %}
+                    <div class="d-flex gap-2">
+                        {% if service_request.status == 'draft' %}
+                            <a href="{% url 'request_submit' service_request.pk %}" class="btn btn-success">
+                                <i class="bi bi-send"></i> Opublikuj zgłoszenie
+                            </a>
+                            <a href="{% url 'request_create' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-pencil"></i> Edytuj
+                            </a>
+                        {% endif %}
+                        {% if service_request.status != 'completed' and service_request.status != 'cancelled' %}
+                            <a href="{% url 'request_cancel' service_request.pk %}" class="btn btn-outline-danger">
+                                <i class="bi bi-x-circle"></i> Anuluj
+                            </a>
+                        {% endif %}
+                        {% if service_request.status == 'in_progress' %}
+                            <a href="{% url 'request_complete' service_request.pk %}" class="btn btn-outline-success">
+                                <i class="bi bi-check-circle"></i> Zakończ naprawę
+                            </a>
+                        {% endif %}
+                    </div>
+                {% elif user.role == 'service' and can_offer %}
+                    <a href="{% url 'offer_create' service_request.pk %}" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Złóż ofertę
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Oferty -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-briefcase"></i> Oferty ({{ offers.count }})
+            </div>
+            <div class="card-body">
+                {% if offers %}
+                    {% for offer in offers %}
+                        <div class="card mb-3 {% if offer.status == 'accepted' %}border-success{% endif %}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-0">{{ offer.service.company_name }}</h6>
+                                        <small class="text-muted">{{ offer.created_at|date:"d.m.Y H:i" }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h5 class="mb-0 text-primary">{{ offer.price }} zł</h5>
+                                        {% if offer.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark">Oczekująca</span>
+                                        {% elif offer.status == 'accepted' %}
+                                            <span class="badge bg-success">Zaakceptowana</span>
+                                        {% elif offer.status == 'rejected' %}
+                                            <span class="badge bg-danger">Odrzucona</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Wycofana</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <p class="mb-2">{{ offer.message }}</p>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Czas naprawy:</small><br>
+                                        <strong>{{ offer.estimated_time }}</strong>
+                                    </div>
+                                    {% if offer.warranty_period %}
+                                        <div class="col-md-4">
+                                            <small class="text-muted">Gwarancja:</small><br>
+                                            <strong>{{ offer.warranty_period }}</strong>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% if offer.additional_info %}
+                                    <p class="mt-2 mb-0 text-muted small">{{ offer.additional_info }}</p>
+                                {% endif %}
+                                
+                                 {% if user.role == 'client' and offer.status == 'pending' %}
+                                     <div class="mt-3">
+                                         <a href="{% url 'offer_accept' offer.pk %}" class="btn btn-success btn-sm"
+                                            onclick="return confirm('Czy na pewno chcesz zaakceptować tę ofertę?')">
+                                             <i class="bi bi-check-circle"></i> Akceptuj
+                                         </a>
+                                         <a href="{% url 'offer_reject' offer.pk %}" class="btn btn-outline-danger btn-sm"
+                                            onclick="return confirm('Czy na pewno chcesz odrzucić tę ofertę?')">
+                                             <i class="bi bi-x-circle"></i> Odrzuć
+                                         </a>
+                                     </div>
+                                 {% elif user.role == 'client' and offer.status == 'accepted' %}
+                                     <div class="mt-3">
+                                         {% if service_request.payment %}
+                                             <a href="{% url 'payment_detail' service_request.payment.pk %}" class="btn btn-primary btn-sm">
+                                                 <i class="bi bi-credit-card"></i> Zobacz płatność
+                                             </a>
+                                         {% else %}
+                                             <a href="{% url 'payment_create' offer.pk %}" class="btn btn-primary btn-sm">
+                                                 <i class="bi bi-credit-card"></i> Utwórz płatność escrow
+                                             </a>
+                                         {% endif %}
+                                     </div>
+                                 {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center mb-0">Brak ofert dla tego zgłoszenia</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Wiadomości -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-chat-left-text"></i> Wiadomości</span>
+                <a href="{% url 'chat' service_request.pk %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-chat-dots"></i> Otwórz czat
+                </a>
+            </div>
+            <div class="card-body">
+                {% if chat_messages %}
+                    <div class="mb-3" style="max-height: 400px; overflow-y: auto;">
+                        {% for message in chat_messages %}
+                            <div class="d-flex mb-3 {% if message.sender == user %}flex-row-reverse{% endif %}">
+                                <div class="{% if message.sender == user %}text-end{% endif %}">
+                                    <div class="d-inline-block p-3 rounded {% if message.sender == user %}bg-primary text-white{% else %}bg-light{% endif %}"
+                                         style="max-width: 400px;">
+                                        <p class="mb-1">{{ message.content }}</p>
+                                        <small class="{% if message.sender == user %}text-light{% else %}text-muted{% endif %}">
+                                            {{ message.sender.username }} • {{ message.created_at|date:"d.m.Y H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center mb-3">Brak wiadomości</p>
+                {% endif %}
+                
+                <form method="post" action="{% url 'message_send' service_request.pk %}">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" name="content" class="form-control" placeholder="Napisz wiadomość..." required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Wyślij
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Panel boczny -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-person"></i> Klient
+            </div>
+            <div class="card-body">
+                <p class="mb-1"><strong>{{ service_request.client.first_name }} {{ service_request.client.last_name }}</strong></p>
+                <p class="mb-1 text-muted">{{ service_request.client.email }}</p>
+                {% if service_request.client.phone %}
+                    <p class="mb-0"><i class="bi bi-telephone"></i> {{ service_request.client.phone }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if service_request.status == 'completed' and user.role == 'client' %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-star"></i> Oceń serwis
+                </div>
+                <div class="card-body">
+                    {% if service_request.review %}
+                        <p class="text-muted mb-0">Już dodano opinię</p>
+                    {% else %}
+                        <p class="mb-2">Podziel się swoim doświadczeniem z serwisem</p>
+                        <a href="{% url 'review_create' service_request.pk %}" class="btn btn-primary btn-sm w-100">
+                            <i class="bi bi-pencil"></i> Dodaj opinię
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> Informacje
+            </div>
+            <div class="card-body">
+                <p class="mb-1">
+                    <small class="text-muted">ID zgłoszenia:</small><br>
+                    <strong>#{{ service_request.pk }}</strong>
+                </p>
+                {% if service_request.submitted_at %}
+                    <p class="mb-1">
+                        <small class="text-muted">Opublikowano:</small><br>
+                        {{ service_request.submitted_at|date:"d.m.Y H:i" }}
+                    </p>
+                {% endif %}
+                {% if service_request.completed_at %}
+                    <p class="mb-0">
+                        <small class="text-muted">Zakończono:</small><br>
+                        {{ service_request.completed_at|date:"d.m.Y H:i" }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

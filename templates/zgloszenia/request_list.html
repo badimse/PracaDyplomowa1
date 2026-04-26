@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if title %}{{ title }}{% else %}Zgłoszenia{% endif %} - Serwis RTV{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h2><i class="bi bi-list-ul"></i> {% if title %}{{ title }}{% else %}Zgłoszenia{% endif %}</h2>
+        {% if is_client %}
+            <a href="{% url 'request_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nowe zgłoszenie
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if is_service %}
+    <!-- Filtry dla serwisu -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-funnel"></i> Filtruj zgłoszenia
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Wyszukaj</label>
+                    <input type="text" id="search-input" class="form-control" placeholder="Tytuł, urządzenie...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Województwo</label>
+                    {{ filter_form.voivodeship }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Kategoria urządzenia</label>
+                    {{ filter_form.device_category }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    {{ filter_form.status }}
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Filtruj
+                    </button>
+                    <a href="{% url 'request_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Wyczyść
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endif %}
+
+{% if is_admin %}
+    <!-- Filtry dla administratora -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-funnel"></i> Filtruj zgłoszenia
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Urządzenie (kategoria)</label>
+                    <select name="device_category" class="form-select">
+                        <option value="">Wszystkie</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if filter_device_category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Priorytet</label>
+                    <select name="priority" class="form-select">
+                        <option value="">Wszystkie</option>
+                        <option value="low" {% if filter_priority == 'low' %}selected{% endif %}>Niski</option>
+                        <option value="normal" {% if filter_priority == 'normal' %}selected{% endif %}>Normalny</option>
+                        <option value="high" {% if filter_priority == 'high' %}selected{% endif %}>Wysoki</option>
+                        <option value="urgent" {% if filter_priority == 'urgent' %}selected{% endif %}>Pilny</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">Wszystkie</option>
+                        <option value="draft" {% if filter_status == 'draft' %}selected{% endif %}>Szkic</option>
+                        <option value="submitted" {% if filter_status == 'submitted' %}selected{% endif %}>Zgłoszone</option>
+                        <option value="viewed_by_services" {% if filter_status == 'viewed_by_services' %}selected{% endif %}>Wyświetlone</option>
+                        <option value="offers_received" {% if filter_status == 'offers_received' %}selected{% endif %}>Oferty</option>
+                        <option value="in_progress" {% if filter_status == 'in_progress' %}selected{% endif %}>W naprawie</option>
+                        <option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>Zakończone</option>
+                        <option value="cancelled" {% if filter_status == 'cancelled' %}selected{% endif %}>Anulowane</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Płatność</label>
+                    <select name="payment_status" class="form-select">
+                        <option value="">Wszystkie</option>
+                        <option value="no_payment" {% if filter_payment_status == 'no_payment' %}selected{% endif %}>Brak płatności</option>
+                        <option value="pending" {% if filter_payment_status == 'pending' %}selected{% endif %}>Oczekująca</option>
+                        <option value="paid" {% if filter_payment_status == 'paid' %}selected{% endif %}>Opłacona</option>
+                        <option value="paid_to_admin" {% if filter_payment_status == 'paid_to_admin' %}selected{% endif %}>U administratora</option>
+                        <option value="released" {% if filter_payment_status == 'released' %}selected{% endif %}>Wypłacona</option>
+                        <option value="refunded" {% if filter_payment_status == 'refunded' %}selected{% endif %}>Zwrócona</option>
+                        <option value="cancelled" {% if filter_payment_status == 'cancelled' %}selected{% endif %}>Anulowana</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Data od</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ filter_date_from }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Data do</label>
+                    <input type="date" name="date_to" class="form-control" value="{{ filter_date_to }}">
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <div class="col-12">
+                    <a href="{% url 'request_list' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-x-circle"></i> Wyczyść filtry
+                    </a>
+                    {% if filter_device_category or filter_priority or filter_status or filter_date_from or filter_date_to %}
+                        <span class="badge bg-primary ms-2">Filtry aktywne</span>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Wyniki wyszukiwania live -->
+    <div id="search-results" class="card mb-4" style="display: none;">
+        <div class="card-header">
+            <i class="bi bi-search"></i> Wyniki wyszukiwania
+        </div>
+        <div class="card-body p-0">
+            <ul class="list-group list-group-flush" id="search-results-list"></ul>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Lista zgłoszeń -->
+<div class="card">
+    <div class="card-body p-0">
+        {% if requests %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tytuł</th>
+                            <th>Urządzenie</th>
+                            {% if is_service %}
+                                <th>Lokalizacja</th>
+                            {% endif %}
+                            <th>Priorytet</th>
+                            <th>Status</th>
+                            <th>Płatność</th>
+                            <th>Data</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                            {% with payment=request.payment %}
+                            <tr>
+                                <td>
+                                    <strong>{{ request.title }}</strong>
+                                    {% if request.warranty_status %}
+                                        <span class="badge bg-success ms-1">Gwarancja</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ request.device_brand }} {{ request.device_model|default:"" }}
+                                    <small class="text-muted d-block">{{ request.device_category|default:"-" }}</small>
+                                </td>
+                                {% if is_service %}
+                                    <td>
+                                        <i class="bi bi-geo-alt"></i> {{ request.city }}
+                                        <small class="text-muted d-block">{{ request.voivodeship }}</small>
+                                    </td>
+                                {% endif %}
+                                <td>
+                                    {% if request.priority == 'low' %}
+                                        <span class="badge bg-secondary">{{ request.get_priority_display }}</span>
+                                    {% elif request.priority == 'normal' %}
+                                        <span class="badge bg-primary">{{ request.get_priority_display }}</span>
+                                    {% elif request.priority == 'high' %}
+                                        <span class="badge bg-warning text-dark">{{ request.get_priority_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ request.get_priority_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-status badge-{{ request.status }}">
+                                        {{ request.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if payment %}
+                                        {% if payment.status == 'pending' %}
+                                            <span class="badge bg-secondary"><i class="bi bi-clock"></i> Oczekuje</span>
+                                        {% elif payment.status == 'paid' %}
+                                            <span class="badge bg-info"><i class="bi bi-check"></i> Opłacona</span>
+                                        {% elif payment.status == 'paid_to_admin' %}
+                                            <span class="badge bg-primary"><i class="bi bi-shield"></i> U administratora</span>
+                                        {% elif payment.status == 'released' %}
+                                            <span class="badge bg-success"><i class="bi bi-cash"></i> Wypłacona</span>
+                                        {% elif payment.status == 'refunded' %}
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-arrow-return-left"></i> Zwrócona</span>
+                                        {% elif payment.status == 'cancelled' %}
+                                            <span class="badge bg-danger"><i class="bi bi-x"></i> Anulowana</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ request.created_at|date:"d.m.Y" }}</td>
+                                <td>
+                                    <a href="{% url 'request_detail' request.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Szczegóły
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginacja -->
+            {% if requests.has_other_pages %}
+                <div class="card-footer">
+                    <nav>
+                        <ul class="pagination mb-0 justify-content-center">
+                            {% if requests.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ requests.previous_page_number }}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in requests.paginator.page_range %}
+                                {% if requests.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > requests.number|add:'-3' and num < requests.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if requests.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ requests.next_page_number }}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox device-icon"></i>
+                <h5 class="mt-3">Brak zgłoszeń</h5>
+                <p class="text-muted">
+                    {% if is_client %}
+                        Nie masz jeszcze żadnych zgłoszeń.
+                    {% elif is_service %}
+                        Brak zgłoszeń spełniających wybrane kryteria.
+                    {% else %}
+                        Brak zgłoszeń w systemie.
+                    {% endif %}
+                </p>
+                {% if is_client %}
+                    <a href="{% url 'request_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Dodaj pierwsze zgłoszenie
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if is_service %}
+<script>
+// Live search dla zgłoszeń
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const resultsDiv = document.getElementById('search-results');
+    const resultsList = document.getElementById('search-results-list');
+    
+    if (searchInput) {
+        let debounceTimer;
+        
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            debounceTimer = setTimeout(() => {
+                fetch(`/zgloszenia/api/search/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.results && data.results.length > 0) {
+                            resultsList.innerHTML = data.results.map(item => `
+                                <li class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>${item.title}</strong>
+                                            <br><small class="text-muted">${item.device}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">${item.city}</small>
+                                            <br>
+                                            <a href="/zgloszenia/${item.id}/" class="btn btn-sm btn-primary mt-1">
+                                                Zobacz
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+                            `).join('');
+                            resultsDiv.style.display = 'block';
+                        } else {
+                            resultsList.innerHTML = '<li class="list-group-item text-muted">Brak wyników</li>';
+                            resultsDiv.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Błąd wyszukiwania:', error);
+                    });
+            }, 300);
+        });
+        
+        // Ukryj wyniki przy kliknięciu poza
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+                resultsDiv.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

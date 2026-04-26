@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Serwis RTV{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'request_list' %}">Zgłoszenia</a></li>
+                <li class="breadcrumb-item active">{{ title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-credit-card"></i> {{ title }}</h5>
+    </div>
+    <div class="card-body">
+        {% if payments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Zgłoszenie</th>
+                            <th>Serwis/Klient</th>
+                            <th>Kwota</th>
+                            <th>Prowizja</th>
+                            <th>Do wypłaty</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>#{{ payment.pk }}</td>
+                            <td>
+                                <a href="{% url 'request_detail' payment.service_request.pk %}">
+                                    {{ payment.service_request.title }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if is_client %}
+                                    {{ payment.service_offer.service.company_name }}
+                                {% elif is_service %}
+                                    {{ payment.service_request.client }}
+                                {% else %}
+                                    {{ payment.service_request.client }} / 
+                                    {{ payment.service_offer.service.company_name }}
+                                {% endif %}
+                            </td>
+                            <td>{{ payment.amount }} zł</td>
+                            <td class="text-danger">{{ payment.admin_fee }} zł</td>
+                            <td class="text-success">{{ payment.final_amount }} zł</td>
+                            <td>
+                                {% if payment.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">Oczekująca</span>
+                                {% elif payment.status == 'paid_to_admin' %}
+                                    <span class="badge bg-info">U administratora</span>
+                                {% elif payment.status == 'released_to_service' %}
+                                    <span class="badge bg-success">Wypłacona</span>
+                                {% elif payment.status == 'refunded' %}
+                                    <span class="badge bg-primary">Zwrócona</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Anulowana</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ payment.created_at|date:"d.m.Y" }}</td>
+                            <td>
+                                <a href="{% url 'payment_detail' payment.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Szczegóły
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted text-center mb-0">Brak płatności</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

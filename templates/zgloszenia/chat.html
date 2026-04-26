@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Czat - {{ service_request.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        max-height: 500px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background: #f8f9fa;
+    }
+    .message {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        max-width: 80%;
+    }
+    .message-mine {
+        background: #0d6efd;
+        color: white;
+        margin-left: auto;
+    }
+    .message-other {
+        background: white;
+        border: 1px solid #dee2e6;
+    }
+    .message-meta {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-top: 0.25rem;
+    }
+    .chat-input {
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'request_detail' service_request.pk %}">{{ service_request.title }}</a></li>
+                <li class="breadcrumb-item active">Czat</li>
+            </ol>
+        </nav>
+        <h2><i class="bi bi-chat-dots"></i> Czat z {{ recipient_name }}</h2>
+        <p class="text-muted">Zgłoszenie: {{ service_request.title }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-chat-text"></i> Wiadomości</span>
+                <span class="badge bg-secondary" id="message-count">{{ messages|length }}</span>
+            </div>
+            <div class="card-body">
+                <div class="chat-container" id="chat-container">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="message {% if message.sender == user %}message-mine{% else %}message-other{% endif %}">
+                                <div class="message-content">{{ message.content }}</div>
+                                <div class="message-meta">
+                                    {{ message.sender.username }} • {{ message.created_at|date:"d.m.Y H:i" }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-chat-quote device-icon"></i>
+                            <h5 class="mt-3">Brak wiadomości</h5>
+                            <p class="text-muted">Rozpocznij rozmowę z {{ recipient_name }}.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <form class="chat-input" method="POST" action="{% url 'message_send' service_request.pk %}">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" name="content" class="form-control" placeholder="Napisz wiadomość..." required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Wyślij
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <a href="{% url 'request_detail' service_request.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Powrót do zgłoszenia
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-scroll do najnowszej wiadomości
+    const chatContainer = document.getElementById('chat-container');
+    if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+    // Odświeżanie wiadomości co 5 sekund
+    setInterval(function() {
+        fetch('{% url "api_messages" service_request.pk %}')
+            .then(response => response.json())
+            .then(data => {
+                const chatContainer = document.getElementById('chat-container');
+                const currentCount = document.querySelectorAll('.message').length;
+                
+                if (data.messages.length > currentCount) {
+                    location.reload();
+                }
+            });
+    }, 5000);
+</script>
+{% endblock %}

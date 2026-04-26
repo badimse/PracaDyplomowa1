@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Serwis RTV{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-plus-circle"></i> {{ title }}
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-phone"></i> Informacje o urządzeniu
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label">Tytuł zgłoszenia</label>
+                        {{ form.title }}
+                        <div class="form-text">Krótki opis problemu, np. "Telefon nie włącza się"</div>
+                        {% if form.title.errors %}
+                            <div class="text-danger small">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_device_category" class="form-label">Kategoria urządzenia</label>
+                            {{ form.device_category }}
+                            {% if form.device_category.errors %}
+                                <div class="text-danger small">{{ form.device_category.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="id_device_type" class="form-label">Typ urządzenia</label>
+                            {{ form.device_type }}
+                            {% if form.device_type.errors %}
+                                <div class="text-danger small">{{ form.device_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_device_brand" class="form-label">Marka</label>
+                            {{ form.device_brand }}
+                            {% if form.device_brand.errors %}
+                                <div class="text-danger small">{{ form.device_brand.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="id_device_model" class="form-label">Model</label>
+                            {{ form.device_model }}
+                            {% if form.device_model.errors %}
+                                <div class="text-danger small">{{ form.device_model.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_serial_number" class="form-label">Numer seryjny (opcjonalnie)</label>
+                        {{ form.serial_number }}
+                        {% if form.serial_number.errors %}
+                            <div class="text-danger small">{{ form.serial_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_purchase_date" class="form-label">Data zakupu</label>
+                            {{ form.purchase_date }}
+                            {% if form.purchase_date.errors %}
+                                <div class="text-danger small">{{ form.purchase_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label d-block">Status gwarancji</label>
+                            <div class="form-check">
+                                {{ form.warranty_status }}
+                                <label class="form-check-label" for="id_warranty_status">
+                                    Urządzenie jest na gwarancji
+                                </label>
+                            </div>
+                            {% if form.warranty_status.errors %}
+                                <div class="text-danger small">{{ form.warranty_status.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">
+                        <i class="bi bi-exclamation-triangle"></i> Opis usterki
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">Szczegółowy opis problemu</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_priority" class="form-label">Priorytet naprawy</label>
+                        {{ form.priority }}
+                        <div class="form-text">
+                            <small>
+                                <strong>Niski</strong> - niepilne, <strong>Normalny</strong> - standardowy czas,
+                                <strong>Wysoki</strong> - ważne, <strong>Pilny</strong> - natychmiastowa potrzeba
+                            </small>
+                        </div>
+                        {% if form.priority.errors %}
+                            <div class="text-danger small">{{ form.priority.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">
+                        <i class="bi bi-geo-alt"></i> Lokalizacja
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_voivodeship" class="form-label">Województwo</label>
+                            {{ form.voivodeship }}
+                            {% if form.voivodeship.errors %}
+                                <div class="text-danger small">{{ form.voivodeship.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="id_city" class="form-label">Miejscowość</label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <div class="text-danger small">{{ form.city.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_postal_code" class="form-label">Kod pocztowy</label>
+                            {{ form.postal_code }}
+                            {% if form.postal_code.errors %}
+                                <div class="text-danger small">{{ form.postal_code.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="id_address" class="form-label">Adres (opcjonalnie)</label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div class="text-danger small">{{ form.address.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        {{ form.is_mobile_service }}
+                        <label class="form-check-label" for="id_is_mobile_service">
+                            Serwisant ma dojechać do klienta
+                        </label>
+                        <div class="form-text">
+                            Zaznacz jeśli oczekujesz usługi mobilnej - serwisant przyjedzie na miejsce
+                        </div>
+                    </div>
+                    
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">
+                        <i class="bi bi-currency-dollar"></i> Budżet
+                    </h5>
+                    
+                    <div class="mb-4">
+                        <label for="id_estimated_budget" class="form-label">Przewidywany budżet (zł)</label>
+                        {{ form.estimated_budget }}
+                        <div class="form-text">Podaj orientacyjną kwotę którą chcesz przeznaczyć na naprawę</div>
+                        {% if form.estimated_budget.errors %}
+                            <div class="text-danger small">{{ form.estimated_budget.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Zapisz zgłoszenie
+                        </button>
+                        <a href="{% url 'request_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Anuluj
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 0.6rem 1rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    textarea.form-control {
+        min-height: 100px;
+    }
+    .loading-spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid #dee2e6;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('id_device_category');
+    const typeSelect = document.getElementById('id_device_type');
+    
+    if (categorySelect && typeSelect) {
+        categorySelect.addEventListener('change', function() {
+            const categoryId = this.value;
+            
+            // Wyczyść typy
+            typeSelect.innerHTML = '<option value="">---------</option>';
+            
+            if (!categoryId) {
+                return;
+            }
+            
+            // Pokaż loading
+            const label = typeSelect.previousElementSibling;
+            const originalLabel = label.innerHTML;
+            label.innerHTML = originalLabel + ' <span class="loading-spinner"></span>';
+            
+            // Pobierz typy przez AJAX
+            fetch(`/zgloszenia/api/device-types/?category_id=${categoryId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.device_types) {
+                        data.device_types.forEach(type => {
+                            const option = document.createElement('option');
+                            option.value = type.id;
+                            option.textContent = type.name;
+                            typeSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Błąd podczas ładowania typów:', error);
+                })
+                .finally(() => {
+                    label.innerHTML = originalLabel;
+                });
+        });
+    }
+    
+    // Walidacja formularza
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const title = document.getElementById('id_title');
+            const description = document.getElementById('id_description');
+            
+            if (title && title.value.trim() === '') {
+                e.preventDefault();
+                alert('Tytuł zgłoszenia jest wymagany');
+                title.focus();
+                return false;
+            }
+            
+            if (description && description.value.trim() === '') {
+                e.preventDefault();
+                alert('Opis usterki jest wymagany');
+                description.focus();
+                return false;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Złóż ofertę - Serwis RTV{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-briefcase"></i> Złóż ofertę dla zgłoszenia
+            </div>
+            <div class="card-body p-4">
+                <!-- Informacje o zgłoszeniu -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h6 class="mb-2">{{ service_request.title }}</h6>
+                        <p class="mb-1 text-muted">{{ service_request.device_brand }} {{ service_request.device_model }}</p>
+                        <p class="mb-0 text-muted"><i class="bi bi-geo-alt"></i> {{ service_request.city }}, {{ service_request.voivodeship }}</p>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_price" class="form-label">Cena naprawy (zł)</label>
+                        {{ form.price }}
+                        <div class="form-text">Podaj całkowity koszt naprawy</div>
+                        {% if form.price.errors %}
+                            <div class="text-danger small">{{ form.price.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_estimated_time" class="form-label">Szacowany czas naprawy</label>
+                        {{ form.estimated_time }}
+                        <div class="form-text">Np. "2-3 dni robocze", "24 godziny"</div>
+                        {% if form.estimated_time.errors %}
+                            <div class="text-danger small">{{ form.estimated_time.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_warranty_period" class="form-label">Okres gwarancji na naprawę</label>
+                        {{ form.warranty_period }}
+                        <div class="form-text">Np. "12 miesięcy", "6 miesięcy"</div>
+                        {% if form.warranty_period.errors %}
+                            <div class="text-danger small">{{ form.warranty_period.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_message" class="form-label">Wiadomość do klienta</label>
+                        {{ form.message }}
+                        <div class="form-text">Opisz swoją ofertę, doświadczenie i dlaczego warto wybrać właśnie Ciebie</div>
+                        {% if form.message.errors %}
+                            <div class="text-danger small">{{ form.message.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="id_additional_info" class="form-label">Dodatkowe informacje (opcjonalnie)</label>
+                        {{ form.additional_info }}
+                        {% if form.additional_info.errors %}
+                            <div class="text-danger small">{{ form.additional_info.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Wskazówka:</strong> Im bardziej szczegółowa oferta, tym większa szansa na jej akceptację przez klienta.
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Wyślij ofertę
+                        </button>
+                        <a href="{% url 'request_detail' service_request.pk %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Anuluj
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 0.6rem 1rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    textarea.form-control {
+        min-height: 120px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Płatności - Panel Administratora{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="bi bi-credit-card"></i> Zarządzanie Płatnościami</h2>
+        <p class="text-muted">Przeglądaj i zatwierdzaj płatności escrow</p>
+    </div>
+</div>
+
+<!-- Statystyki -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-clock device-icon mb-3"></i>
+                <div class="stat-number">{{ payments_pending }}</div>
+                <div class="stat-label">Do zatwierdzenia</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-shield device-icon mb-3"></i>
+                <div class="stat-number">{{ payments_held }}</div>
+                <div class="stat-label">U administratora</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-cash device-icon mb-3"></i>
+                <div class="stat-number">{{ payments_released }}</div>
+                <div class="stat-label">Wypłacone</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-arrow-return-left device-icon mb-3"></i>
+                <div class="stat-number">{{ payments_refunded }}</div>
+                <div class="stat-label">Zwrócone</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtry -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-funnel"></i> Filtruj płatności
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">Wszystkie</option>
+                    <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>Oczekująca</option>
+                    <option value="paid" {% if filter_status == 'paid' %}selected{% endif %}>Opłacona</option>
+                    <option value="paid_to_admin" {% if filter_status == 'paid_to_admin' %}selected{% endif %}>U administratora</option>
+                    <option value="released" {% if filter_status == 'released' %}selected{% endif %}>Wypłacona</option>
+                    <option value="refunded" {% if filter_status == 'refunded' %}selected{% endif %}>Zwrócona</option>
+                    <option value="cancelled" {% if filter_status == 'cancelled' %}selected{% endif %}>Anulowana</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Szukaj (tytuł/serwis)</label>
+                <input type="text" name="search" class="form-control" placeholder="Wpisz..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Data od</label>
+                <input type="date" name="date_from" class="form-control" value="{{ filter_date_from }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Data do</label>
+                <input type="date" name="date_to" class="form-control" value="{{ filter_date_to }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Filtruj
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabela płatności -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list"></i> Płatności ({{ payments.count }})</span>
+        <span class="badge bg-primary">Łącznie: {{ total_amount }} zł</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Zgłoszenie</th>
+                        <th>Serwis</th>
+                        <th>Kwota</th>
+                        <th>Prowizja</th>
+                        <th>Do wypłaty</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                        <tr>
+                            <td>#{{ payment.pk }}</td>
+                            <td>
+                                <a href="{% url 'request_detail' payment.service_request.pk %}" class="text-decoration-none">
+                                    {{ payment.service_request.title|truncatechars:30 }}
+                                </a>
+                            </td>
+                            <td>{{ payment.service_offer.service.company_name|truncatechars:25 }}</td>
+                            <td><strong>{{ payment.amount }} zł</strong></td>
+                            <td>{{ payment.admin_fee }} zł</td>
+                            <td><strong class="text-success">{{ payment.final_amount }} zł</strong></td>
+                            <td>
+                                {% if payment.status == 'pending' %}
+                                    <span class="badge bg-secondary"><i class="bi bi-clock"></i> Oczekująca</span>
+                                {% elif payment.status == 'paid' %}
+                                    <span class="badge bg-info"><i class="bi bi-check"></i> Opłacona</span>
+                                {% elif payment.status == 'paid_to_admin' %}
+                                    <span class="badge bg-primary"><i class="bi bi-shield"></i> U administratora</span>
+                                {% elif payment.status == 'released' %}
+                                    <span class="badge bg-success"><i class="bi bi-cash"></i> Wypłacona</span>
+                                {% elif payment.status == 'refunded' %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-arrow-return-left"></i> Zwrócona</span>
+                                {% elif payment.status == 'cancelled' %}
+                                    <span class="badge bg-danger"><i class="bi bi-x"></i> Anulowana</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ payment.created_at|date:"d.m.Y" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'payment_detail' payment.pk %}" class="btn btn-outline-primary" title="Szczegóły">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if payment.status == 'paid_to_admin' %}
+                                        <a href="{% url 'payment_release' payment.pk %}" class="btn btn-success" title="Wypłać">
+                                            <i class="bi bi-cash"></i>
+                                        </a>
+                                        <a href="{% url 'payment_refund' payment.pk %}" class="btn btn-warning" title="Zwróć">
+                                            <i class="bi bi-arrow-return-left"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox"></i> Brak płatności
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Paginacja -->
+    {% if payments.has_other_pages %}
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination mb-0 justify-content-center">
+                    {% if payments.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ payments.previous_page_number }}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in payments.paginator.page_range %}
+                        {% if payments.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > payments.number|add:'-3' and num < payments.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if payments.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ payments.next_page_number }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Powrót do dashboardu
+    </a>
+    <a href="/admin/zgloszenia/payment/" class="btn btn-outline-primary">
+        <i class="bi bi-gear"></i> Django Admin
+    </a>
+</div>
+{% endblock %}

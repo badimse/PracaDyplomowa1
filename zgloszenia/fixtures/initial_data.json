@@ -1,0 +1,150 @@
+[
+  {
+    "model": "zgloszenia.devicecategory",
+    "pk": 1,
+    "fields": {
+      "name": "Telewizory",
+      "slug": "telewizory"
+    }
+  },
+  {
+    "model": "zgloszenia.devicecategory",
+    "pk": 2,
+    "fields": {
+      "name": "Smartfony",
+      "slug": "smartfony"
+    }
+  },
+  {
+    "model": "zgloszenia.devicecategory",
+    "pk": 3,
+    "fields": {
+      "name": "Tablety",
+      "slug": "tablety"
+    }
+  },
+  {
+    "model": "zgloszenia.devicecategory",
+    "pk": 4,
+    "fields": {
+      "name": "Sprzęt Audio",
+      "slug": "sprzet-audio"
+    }
+  },
+  {
+    "model": "zgloszenia.devicecategory",
+    "pk": 5,
+    "fields": {
+      "name": "Konsole do gier",
+      "slug": "konsole-do-gier"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 1,
+    "fields": {
+      "category": 1,
+      "name": "TV LED",
+      "slug": "tv-led"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 2,
+    "fields": {
+      "category": 1,
+      "name": "TV OLED",
+      "slug": "tv-oled"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 3,
+    "fields": {
+      "category": 1,
+      "name": "TV LCD",
+      "slug": "tv-lcd"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 4,
+    "fields": {
+      "category": 2,
+      "name": "Android",
+      "slug": "android"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 5,
+    "fields": {
+      "category": 2,
+      "name": "iPhone",
+      "slug": "iphone"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 6,
+    "fields": {
+      "category": 3,
+      "name": "iPad",
+      "slug": "ipad"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 7,
+    "fields": {
+      "category": 3,
+      "name": "Android Tablet",
+      "slug": "android-tablet"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 8,
+    "fields": {
+      "category": 4,
+      "name": "Wzmacniacze",
+      "slug": "wzmacniacze"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 9,
+    "fields": {
+      "category": 4,
+      "name": "Odtwarzacze",
+      "slug": "odtwarzacze"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 10,
+    "fields": {
+      "category": 5,
+      "name": "PlayStation",
+      "slug": "playstation"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 11,
+    "fields": {
+      "category": 5,
+      "name": "Xbox",
+      "slug": "xbox"
+    }
+  },
+  {
+    "model": "zgloszenia.devicetype",
+    "pk": 12,
+    "fields": {
+      "category": 5,
+      "name": "Nintendo Switch",
+      "slug": "nintendo-switch"
+    }
+  }
+]

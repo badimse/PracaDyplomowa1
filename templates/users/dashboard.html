@@ -1,0 +1,345 @@
+ i {% extends 'base.html' %}
+
+{% block title %}Dashboard - Serwis RTV{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        position: relative;
+        height: 250px;
+    }
+    .stat-card {
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+        <p class="text-muted">Witaj, {{ user.username }}!</p>
+    </div>
+</div>
+
+{% if user.role == 'client' %}
+    <!-- Dashboard Klienta -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <a href="{% url 'request_list' %}" class="text-decoration-none">
+                <div class="card stat-card h-100" style="cursor: pointer;">
+                    <i class="bi bi-file-earmark-text device-icon mb-3"></i>
+                    <div class="stat-number">{{ requests|length|default:0 }}</div>
+                    <div class="stat-label">Moje zgłoszenia</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'request_list' %}" class="text-decoration-none">
+                <div class="card stat-card h-100" style="cursor: pointer;">
+                    <i class="bi bi-pencil-square device-icon mb-3"></i>
+                    <div class="stat-number">
+                        {% if requests %}
+                            {{ requests|length|default:0 }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
+                    <div class="stat-label">W trakcie</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'request_list' %}" class="text-decoration-none">
+                <div class="card stat-card h-100" style="cursor: pointer;">
+                    <i class="bi bi-check-circle device-icon mb-3"></i>
+                    <div class="stat-number">
+                        {% if requests %}
+                            {{ requests|length|default:0 }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
+                    <div class="stat-label">Zakończone</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-list-ul"></i> Ostatnie zgłoszenia</span>
+                    <a href="{% url 'request_create' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> Nowe zgłoszenie
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if requests %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Tytuł</th>
+                                        <th>Urządzenie</th>
+                                        <th>Status</th>
+                                        <th>Data</th>
+                                        <th>Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in requests %}
+                                        <tr>
+                                            <td>{{ request.title }}</td>
+                                            <td>{{ request.device_brand }} {{ request.device_model }}</td>
+                                            <td>
+                                                <span class="badge badge-status badge-{{ request.status }}">
+                                                    {{ request.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ request.created_at|date:"d.m.Y" }}</td>
+                                            <td>
+                                                <a href="{% url 'request_detail' request.pk %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox device-icon"></i>
+                            <h5 class="mt-3">Brak zgłoszeń</h5>
+                            <p class="text-muted">Utwórz pierwsze zgłoszenie naprawy.</p>
+                            <a href="{% url 'request_create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Dodaj zgłoszenie
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-person-circle"></i> Twój profil
+                </div>
+                <div class="card-body">
+                    {% if profile %}
+                        <p><strong>Imię i nazwisko:</strong><br>{{ profile.first_name }} {{ profile.last_name }}</p>
+                        <p><strong>Email:</strong><br>{{ profile.email }}</p>
+                        <p><strong>Telefon:</strong><br>{{ profile.phone|default:"-" }}</p>
+                        <p><strong>Miejscowość:</strong><br>{{ profile.city|default:"-" }}</p>
+                        <a href="{% url 'profile_edit' %}" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-pencil"></i> Edytuj profil
+                        </a>
+                    {% else %}
+                        <p class="text-muted">Uzupełnij dane profilu.</p>
+                        <a href="{% url 'profile_edit' %}" class="btn btn-primary w-100">
+                            <i class="bi bi-pencil"></i> Uzupełnij dane
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif user.role == 'service' %}
+    <!-- Dashboard Serwisu -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <a href="{% url 'request_list' %}" class="text-decoration-none">
+                <div class="card stat-card h-100" style="cursor: pointer;">
+                    <i class="bi bi-briefcase device-icon mb-3"></i>
+                    <div class="stat-number">{{ available_requests|length|default:0 }}</div>
+                    <div class="stat-label">Dostępne zgłoszenia</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'request_list' %}" class="text-decoration-none">
+                <div class="card stat-card h-100" style="cursor: pointer;">
+                    <i class="bi bi-send device-icon mb-3"></i>
+                    <div class="stat-number">{{ my_offers|length|default:0 }}</div>
+                    <div class="stat-label">Moje oferty</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'profile' %}" class="text-decoration-none">
+                <div class="card stat-card h-100" style="cursor: pointer;">
+                    <i class="bi bi-star device-icon mb-3"></i>
+                    <div class="stat-number">
+                        {% if profile %}
+                            {{ profile.reviews.count|default:0 }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
+                    <div class="stat-label">Opinie</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-search"></i> Dostępne zgłoszenia</span>
+                    <a href="{% url 'request_list' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-funnel"></i> Filtruj
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if available_requests %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Tytuł</th>
+                                        <th>Lokalizacja</th>
+                                        <th>Priorytet</th>
+                                        <th>Data</th>
+                                        <th>Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in available_requests %}
+                                        <tr>
+                                            <td>{{ request.title }}</td>
+                                            <td>{{ request.city }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ request.get_priority_display|lower }}">
+                                                    {{ request.get_priority_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ request.created_at|date:"d.m.Y" }}</td>
+                                            <td>
+                                                <a href="{% url 'request_detail' request.pk %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i> Szczegóły
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-check-circle device-icon"></i>
+                            <h5 class="mt-3">Brak nowych zgłoszeń</h5>
+                            <p class="text-muted">Sprawdź później lub zmień filtry wyszukiwania.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-building"></i> Twój serwis
+                </div>
+                <div class="card-body">
+                    {% if profile %}
+                        <p><strong>Nazwa:</strong><br>{{ profile.company_name }}</p>
+                        <p><strong>Email:</strong><br>{{ profile.email }}</p>
+                        <p><strong>Telefon:</strong><br>{{ profile.phone|default:"-" }}</p>
+                        <p><strong>Lokalizacja:</strong><br>{{ profile.city|default:"-" }}</p>
+                        <p><strong>Status:</strong>
+                            {% if profile.is_verified %}
+                                <span class="badge bg-success">Zweryfikowany</span>
+                            {% else %}
+                                <span class="badge bg-warning">Oczekuje</span>
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'profile_edit' %}" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-pencil"></i> Edytuj dane
+                        </a>
+                    {% else %}
+                        <p class="text-muted">Uzupełnij dane serwisu.</p>
+                        <a href="{% url 'profile_edit' %}" class="btn btn-primary w-100">
+                            <i class="bi bi-pencil"></i> Uzupełnij dane
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <!-- Dashboard Administratora -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <a href="{% url 'admin_panel' %}" class="text-decoration-none">
+                <div class="card stat-card h-100" style="cursor: pointer;">
+                    <i class="bi bi-people device-icon mb-3"></i>
+                    <div class="stat-number">{{ users_count|default:0 }}</div>
+                    <div class="stat-label">Użytkownicy</div>
+                    <small class="text-muted mt-1">
+                        <span class="badge bg-success">{{ clients_count }}</span> klientów
+                        <span class="badge bg-primary">{{ services_count }}</span> serwisów
+                    </small>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'payment_admin_list' %}" class="text-decoration-none">
+                <div class="card stat-card h-100" style="cursor: pointer;">
+                    <i class="bi bi-credit-card device-icon mb-3"></i>
+                    <div class="stat-number">{{ payments_pending|default:0 }}</div>
+                    <div class="stat-label">Płatności do zatwierdzenia</div>
+                    <small class="text-muted mt-1">Oczekujące wypłaty</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'request_list' %}" class="text-decoration-none">
+                <div class="card stat-card h-100" style="cursor: pointer;">
+                    <i class="bi bi-list-check device-icon mb-3"></i>
+                    <div class="stat-number">{{ active_requests|default:0 }}</div>
+                    <div class="stat-label">Aktywne zgłoszenia</div>
+                    <small class="text-muted mt-1">W trakcie realizacji</small>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-gear"></i> Panel Administratora
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a href="{% url 'admin_panel' %}" class="btn btn-primary w-100 py-3">
+                                <i class="bi bi-people"></i> Zarządzaj użytkownikami
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'request_list' %}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-list-ul"></i> Wszystkie zgłoszenia
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/admin/" class="btn btn-outline-secondary w-100 py-3">
+                                <i class="bi bi-database"></i> Panel Django Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
