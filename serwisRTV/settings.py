@@ -26,8 +26,8 @@ SECRET_KEY = 'django-insecure-lc3oqigk9a1zr-aa8osihx)^4qm+-2dz6*ib624_zj#-#76tma
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'adrianbiber.pl', 
-    'www.adrianbiber.pl', 
+    'szkolatest.com.pl', 
+    'www.szkolatest.com.pl', 
     '96.9.214.91', 
     'localhost', 
     '127.0.0.1'
