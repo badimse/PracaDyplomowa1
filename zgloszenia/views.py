@@ -13,13 +13,18 @@ from .models import ServiceRequest, ServiceOffer, Message, DeviceCategory, Devic
 from .forms import ServiceRequestForm, ServiceOfferForm, MessageForm, ServiceRequestFilterForm, PaymentForm, PaymentReleaseForm
 from users.models import ClientProfile, ServiceProfile, Notification, User
 
+def is_demo_user(user):
+    """Sprawdza, czy aktualny użytkownik jest kontem demonstracyjnym"""
+    return user.username in ['user', 'serwis', 'admin']
+
 
 @login_required
 def request_create_view(request):
-    """Tworzenie nowego zgłoszenia naprawy"""
-    if request.user.role != 'client':
-        messages.error(request, 'Tylko klient może tworzyć zgłoszenia.')
-        return redirect('request_list')
+    if request.method == 'POST':
+        # BLOKADA DEMO
+        if is_demo_user(request.user):
+            messages.warning(request, 'Wersja DEMO: Tworzenie zgłoszeń jest zablokowane.')
+            return redirect('request_list')
     
     try:
         client_profile = request.user.client_profile
@@ -242,8 +247,12 @@ def request_submit_view(request, pk):
 
 @login_required
 def request_cancel_view(request, pk):
-    """Anulowanie zgłoszenia"""
     service_request = get_object_or_404(ServiceRequest, pk=pk)
+    
+    # BLOKADA DEMO
+    if is_demo_user(request.user):
+        messages.error(request, 'Wersja DEMO: Nie można anulować zgłoszeń.')
+        return redirect('request_detail', pk=pk)
     
     if request.user.role != 'client' or service_request.client.user != request.user:
         messages.error(request, 'Brak uprawnień.')
@@ -631,8 +640,13 @@ def payment_detail_view(request, pk):
 
 @login_required
 def payment_release_view(request, pk):
-    """Wypłata środków serwisowi - tylko administrator"""
     payment = get_object_or_404(Payment, pk=pk)
+    
+    if request.method == 'POST':
+        # BLOKADA DEMO
+        if is_demo_user(request.user):
+            messages.warning(request, 'Wersja DEMO: Akcje finansowe są symulowane i zablokowane.')
+            return redirect('payment_detail', pk=pk)
     
     if request.user.role != 'admin':
         messages.error(request, 'Tylko administrator może wypłacić środki.')

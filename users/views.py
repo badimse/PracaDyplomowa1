@@ -6,6 +6,9 @@ from django.db.models import Q
 from .models import User, ClientProfile, ServiceProfile, Notification
 from .forms import UserRegistrationForm, ClientProfileForm, ServiceProfileForm, LoginForm
 
+def is_demo_user(user):
+    """Sprawdza, czy aktualny użytkownik jest kontem demonstracyjnym"""
+    return user.username in ['user', 'serwis', 'admin']
 
 def register_view(request):
     """Rejestracja nowego użytkownika"""
@@ -168,7 +171,11 @@ def profile_edit_view(request):
     """Edycja profilu"""
     if request.user.role == 'client':
         profile, created = ClientProfile.objects.get_or_create(user=request.user)
+
         if request.method == 'POST':
+            if is_demo_user(request.user):
+                messages.info(request, 'Wersja DEMO: Zapisywanie zmian w profilu jest wyłączone.')
+                return redirect('profile')
             form = ClientProfileForm(request.POST, instance=profile)
             if form.is_valid():
                 form.save()
@@ -179,6 +186,9 @@ def profile_edit_view(request):
     elif request.user.role == 'service':
         profile, created = ServiceProfile.objects.get_or_create(user=request.user)
         if request.method == 'POST':
+            if is_demo_user(request.user):
+                messages.info(request, 'Wersja DEMO: Zapisywanie zmian w profilu jest wyłączone.')
+                return redirect('profile')    
             form = ServiceProfileForm(request.POST, instance=profile)
             if form.is_valid():
                 form.save()
@@ -289,6 +299,10 @@ def admin_user_create_view(request):
         messages.error(request, 'Brak uprawnień.')
         return redirect('dashboard')
     
+    if is_demo_user(request.user):
+        messages.warning(request, 'Wersja DEMO: Dodawanie nowych użytkowników jest wyłączone.')
+        return redirect('admin_panel')
+    
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
@@ -326,6 +340,10 @@ def admin_user_delete_view(request, user_id):
     if request.user.role != 'admin':
         messages.error(request, 'Brak uprawnień.')
         return redirect('dashboard')
+    
+    if is_demo_user(request.user):
+        messages.error(request, 'Wersja DEMO: Usuwanie użytkowników jest całkowicie zablokowane ze względów bezpieczeństwa.')
+        return redirect('admin_panel')   
     
     user = get_object_or_404(User, pk=user_id)
     if user == request.user:
