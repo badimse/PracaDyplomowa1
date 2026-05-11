@@ -18,6 +18,7 @@ from django.views.generic.base import RedirectView
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
+from zgloszenia import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +26,5 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('zgloszenia/', include('zgloszenia.urls')),
     path('favicon.png', RedirectView.as_view(url='/static/favicon.png')), # przekierowanie do statyków
+    path('demo-login/<str:role_name>/', views.demo_access, name='demo_access'),
 ]

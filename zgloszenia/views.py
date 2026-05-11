@@ -1,6 +1,6 @@
 from decimal import Decimal
-
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -1014,3 +1014,24 @@ def notifications_count_ajax(request):
     """API: Liczba nieprzeczytanych powiadomień"""
     unread_count = request.user.notifications.filter(is_read=False).count()
     return JsonResponse({'unread_count': unread_count})
+
+def demo_access(request, role_name):
+    # Mapowanie ról
+    demo_users = {
+        'klient': 'user', 
+        'serwis': 'serwis',
+        'admin': 'admin'
+    }
+    
+    username = demo_users.get(role_name)
+    
+    try:
+        user = User.objects.get(username=username)
+        # Logujemy użytkownika w systemie Django
+        login(request, user)
+        messages.success(request, f"Zalogowano jako {role_name.capitalize()}.")
+    except User.DoesNotExist:
+        messages.error(request, f"Błąd: Użytkownik o nazwie '{username}' nie istnieje w bazie danych!")
+        return redirect('home') # lub inna strona główna
+
+    return redirect('/')
